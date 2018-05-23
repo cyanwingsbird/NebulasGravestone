@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="lib/bootstrap-4.1.1-dist/css/bootstrap.min.css">
+
+    <title>星雲墓碑</title>
+    <link rel="stylesheet" href="css/base_style.css">
+
+
+    <script>
+        function updatePage(resp) {
+            var result = resp.result;
+            var resultArray = JSON.parse(result);
+            for (i = 0; i < 10; i++) {
+                if (resultArray.length > i) {
+                    $("#message" + i).html(returnInsertHTML(i));
+                    insertValue(i, resultArray[i].id, resultArray[i].toName, resultArray[i].content, resultArray[i].birthday, resultArray[i].passedDay);
+                }
+            }
+        }
+
+        function returnInsertHTML(num) {
+            var html =
+                '<div class="item">' +
+                '<div class="row">' +
+                '<div class="col-md-6">' +
+                '<a id="href_' + num + '"><h3 id="toName_' + num + '"></h3></a>' +
+                '<h4 id="ID_' + num + '"class="organization"></h4>' +
+                '</div>' +
+                '<div class="col-md-6">' +
+                '<time id="period_' + num + '"class="period"></time>' +
+                '<p id="content_' + num + '"></p>' +
+                '</div>' +
+                '</div>' +
+                '</div>';
+            return html;
+        }
+        function insertValue(num, id, toName, content, birthday, passedDay) {
+            $("#toName_" + num).text(toName);
+            $("#ID_" + num).text("ID:" + id);
+            $("#period_" + num).text(birthday + " - " + passedDay);
+            $("#content_" + num).text(content);
+            $("#href_" + num).attr("href", "./search.html?id=" + id);
+        }
+
+        function checkIdExisted() {
+            if ($("#inputID").val().length == 0) {
+                alert("Please input ID!");
+            } else {
+                var to = dappAddress;
+                var value = "0";
+                var callFunction = "isIdExist";
+                var callArgs = "[\"" + $("#inputID").val() + "\"]";
+                nebPay.simulateCall(to, value, callFunction, callArgs, {
+                    listener: uniquenessResult
+                });
+            }
+        }
+        function uniquenessResult(resp) {
+            var result = resp.result;
+            if (result == "true") {
+                isIdValid = false;
+                var html = '<label class="col-form-label text-danger">ID已被佔用</label>'
+            } else if (result == "false") {
+                isIdValid = true;
+                $("#inputID").attr("disabled", true);
+                var html = '<label class="col-form-label text-success">有效</label>'
+            } else {
+                alert("Blockchain data read error!");
+            }
+            $("#isValid").html(html);
+        }
+        function submitBereavement() {
+            if ($("#inputName").val().length == 0) {
+                alert("Please input name!");
+            } else if ($("#inputMessage").val().length == 0) {
+                alert("Please input message!");
+            } else if ($("#birthday").val().length == 0) {
+                alert("Please input birthday!");
+            } else if ($("#passedDay").val().length == 0) {
+                alert("Please input passedDay!");
+            } else if ($("#inputName").val().length > 50) {
+                alert("Name Max 50 charachers");
+            } else if ($("#inputMessage").val().length > 500) {
+                alert("Message Max 500 characters");
+            } else if (!isIdValid) {
+                alert("ID is not valid!");
+            } else {
+                var birthday = $("#birthday").val();
+                var passedDay = $("#passedDay").val();
+
+                var splitbirthday = birthday.split('/');
+                var splitpassedDay = passedDay.split('/');
+
+                var fromDate = Date.parse(splitbirthday[0], splitbirthday[1] - 1, splitbirthday[2]);
+                var toDate = Date.parse(splitpassedDay[0], splitpassedDay[1] - 1, splitpassedDay[2]);
+
+                if (!(fromDate < toDate)) {
+                    alert("Date input error!");
+                } else {
+                    var to = dappAddress;
+                    var value = "0";
+                    var callFunction = "writeNewBereavement";
+                    var callArgs = "[\"" + $("#inputID").val() + "\",\"" + $("#inputName").val() + "\",\"" + $("#inputMessage").val() + "\",\"" + $("#birthday").val() + "\",\"" + $("#passedDay").val() + "\"]";
+                    nebPay.call(to, value, callFunction, callArgs, {
+                        listener: setResult
+                    });
+                }
+            }
+        }
+
+        function setResult(resp) {
+            var result = resp.result;
+            var resultObject = JSON.parse(result);
+        }
+    </script>
+
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-light gradient">
+        <a class="navbar-brand download-template" id="word_name" href="./index.html">星雲墓碑</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+            aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item">
+                    <span class="nav-link" style="color: #95CAF9">在此悼念你最愛的人</span>
+                </li>
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle text-white" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">繁體中文</a>
+                    <div class="dropdown-menu">
+                        <a class="dropdown-item" href="../zh">繁體中文</a>
+                        <a class="dropdown-item" href="../zh-cn">简体中文</a>
+                    </div>
+                </li>
+                <li>
+                    <a href="http://bramleystech.com/" target="_blank">
+                        <button type="button" class="btn  btn-outline-light mr-2">關於我們</button>
+                    </a>
+                </li>
+            </ul>
+            <form class="form-inline my-2 my-lg-0" action="./search.html">
+                <input class="form-control mr-sm-2" type="search" name="id" id="inputSearch" placeholder="以ID搜尋">
+                <button class="btn btn-outline-light my-2 my-sm-0" type="submit">搜尋</button>
+            </form>
+        </div>
+    </nav>
+
+    <section class="cv-block block-intro border-bottom">
+        <div class="container">
+            <div class="avatar">
+                <img class="img-fluid rounded-circle" src="img/img_head.png">
+            </div>
+            <p>謹以我們的哀悼之心，將您想說的話語帶給您心愛的人。</p>
+            <p>
+                <strong>親愛的</strong>, 我有話要對你說...</p>
+            <a href="#new_bereavement_section" class="btn btn-outline-primary mr-5 btn-lg">創建墓碑</a>
+            <a href="./visit.html" class="btn btn-outline-primary btn-lg">一鍵掃墓</a>
+            <a href="./buyOfferings.html" class="btn btn-outline-primary ml-5 btn-lg">購買祭品</a>
+            <a href="./ranking.html" class="btn btn-outline-primary ml-5 btn-lg">最受尊敬先人排行榜</a>
+        </div>
+    </section>
+
+    <div class="container">
+        <section class="cv-block info">
+            <div class="work-experience group" id="work-experience">
+                <h2 class="text-center">最新墓碑和悼念詞</h2>
+
+                <div class="noExtension d-none" id="noExtension">
+                    請先安裝
+                    <a target="_blank" href="https://github.com/ChengOrangeJu/WebExtensionWallet">WebExtensionWallet</a>
+                </div>
+                <div id="message0"></div>
+                <div id="message1"></div>
+                <div id="message2"></div>
+                <div id="message3"></div>
+                <div id="message4"></div>
+                <div id="message5"></div>
+                <div id="message6"></div>
+                <div id="message7"></div>
+                <div id="message8"></div>
+                <div id="message9"></div>
+            </div>
+        </section>
+        <hr>
+        <section id="new_bereavement_section">
+            <div class="ml-5 mt-3 mr-5 mb-5">
+                <div class="form-group row mt-3">
+                    <label for="inputName" class="col-sm-2 col-form-label">此墓碑和悼念詞給予: </label>
+                    <div class="col-sm-10">
+                        <input type="text" maxlength="50" class="form-control" id="inputName" placeholder="他/她的名字">
+                    </div>
+                </div>
+                <div class="form-group row mt-3">
+                    <label for="inputMessage" class="col-sm-2 col-form-label">留下悼念詞 (限500字元): </label>
+                    <div class="col-sm-10">
+                        <textarea maxlength="500" id="inputMessage" class="span6 form-control" rows="3" placeholder="留下悼念詞" required></textarea>
+                    </div>
+                </div>
+
+                <div class="form-group row mt-3 ">
+                    <label for="inputMessage" class="col-sm-2 col-form-label">他/她的出生日: </label>
+                    <input type="date" class="form-control col-sm-2 ml-3" id="birthday">
+                    <label for="inputMessage" class="col-sm-3 col-form-label">他/她的過身日: </label>
+                    <input type="date" class="form-control col-sm-2" id="passedDay">
+                </div>
+
+                <div class="form-group row mt-3">
+                    <label for="inputName" class="col-sm-2 col-form-label">輸入獨一無二的ID:</label>
+                    <div class="col-sm-2">
+                        <input type="text" maxlength="30" class="form-control " id="inputID" placeholder="ID">
+                    </div>
+                    <button type="button" onclick="checkIdExisted()" class="btn btn-primary ">檢查</button>
+                    <span id="isValid" class="col-sm-4"></span>
+                </div>
+
+                <button type="button" id="submit" onclick="submitBereavement()" data-toggle="modal" data-target="#alertModal" class="btn-lg btn-primary float-right mb-4">創建墓碑</button>
+
+            </div>
+    </div>
+    </section>
+    <div class="modal" tabindex="-1" role="dialog" id="alertModal">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-body">
+                        <p>請在交易完成後刷新頁面。</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">關閉</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    <footer>
+        <span class="text-muted ml-5 mb-2 font-italic font-weight-light">Copyright 2018 @ Bramleys Tech Ltd.</span>
+    </footer>
+    </div>
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="lib/jquery-3.3.1.min.js"></script>
+    <script src="lib/popper.min.js"></script>
+    <script src=lib/nebPay.js></script>
+    <script src="lib/bootstrap-4.1.1-dist/js/bootstrap.min.js"></script>
+    <script>
+        var NebPay = require("nebpay");
+        var nebPay = new NebPay();
+        var isIdValid = false;
+        var dappAddress = "n1tApiXdeTxQi1rSpejHFDCukhRbatShyur";
+
+
+        $(document).ready(function () {
+            if (typeof (webExtensionWallet) === "undefined") {
+                alert("Extension wallet is not installed, please install it first.")
+                $("#noExtension").removeClass("hide")
+                $("#submit").attr("disabled", true)
+            } else {
+                $("#submit").attr("disabled", false)
+                var to = dappAddress;
+                var value = "0";
+                var callFunction = "getLastestBereavement";
+                var callArgs = "[\"10\",\"0\"]";
+                nebPay.simulateCall(to, value, callFunction, callArgs, {
+                    listener: updatePage
+                });
+
+            }
+        });
+    </script>
+</body>
+
+</html>

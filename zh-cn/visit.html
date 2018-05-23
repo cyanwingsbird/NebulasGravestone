@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="lib/bootstrap-4.1.1-dist/css/bootstrap.min.css">
+
+    <title>星云墓碑</title>
+    <link rel="stylesheet" href="css/base_style.css">
+
+    <script>
+        function getSearchResult() {
+            if ($("#inputID").val().length == 0) {
+                alert("Please input ID!");
+            } else {
+                var to = dappAddress;
+                var value = "0";
+                var callFunction = "search";
+                var callArgs = "[\"" + $("#inputID").val() + "\"]";
+                nebPay.simulateCall(to, value, callFunction, callArgs, {
+                    listener: idExistResult
+                });
+            }
+        }
+        function idExistResult(resp) {
+            var result = resp.result;
+            var resultItem = JSON.parse(result);
+            if (resultItem == null) {
+                isIdExist = false;
+                var html = '<label class="col-form-label text-danger">ID不存在</label>'
+                $("#isValid").html(html);
+            } else {
+                recordItem = resultItem;
+                isIdExist = true;
+                $("#submit").attr("disabled", false);
+                $("#inputID").attr("disabled", true);
+                var html = '<label id="toName" class="col-form-label text-success">123</label>';
+                $("#isValid").html(html);
+                $("#toName").text("先人名称：" + resultItem.toName);
+            }
+        }
+        function pay() {
+            var to = dappAddress;
+            var value = 0.1;
+            var callFunction = "visitBereavement";
+            var callArgs = "[\"" + $("#inputID").val() + "\"]";
+            nebPay.call(to, value, callFunction, callArgs, {
+                listener: setResult
+            });
+        }
+
+        function setResult(resp) {
+            var result = resp.result;
+            var resultObject = JSON.parse(result);
+        }
+
+    </script>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-light gradient">
+        <a class="navbar-brand download-template" id="word_name" href="./index.html">星云墓碑</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+            aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item">
+                    <span class="nav-link" style="color: #95CAF9">在此悼念你最爱的人</span>
+                </li>
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle text-white" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">简体中文</a>
+                    <div class="dropdown-menu">
+                        <a class="dropdown-item" href="../zh">繁體中文</a>
+                        <a class="dropdown-item" href="../zh-cn">简体中文</a>
+                    </div>
+                </li>
+                <li>
+                    <a href="http://bramleystech.com/" target="_blank">
+                        <button type="button" class="btn  btn-outline-light mr-2">关于我们</button>
+                    </a>
+                </li>
+            </ul>
+            <form class="form-inline my-2 my-lg-0" action="./search.html">
+                <input class="form-control mr-sm-2" type="search" name="id" id="inputSearch" placeholder="以ID搜寻">
+                <button class="btn btn-outline-light my-2 my-sm-0" type="submit">搜寻</button>
+            </form>
+        </div>
+    </nav>
+    <section class="cv-block block-intro border-bottom">
+        <div class="container">
+            <div class="avatar">
+                <img class="img-fluid rounded-circle" src="img/img_head.png">
+            </div>
+            <p> 谨以我们的哀悼之心，将您想说的话语带给您心爱的人。 </p>
+            <p>
+                <strong>亲爱的</strong>, 我有话要对你说...</p>
+            <a href="./index.html" class="btn btn-outline-primary mr-5 btn-lg">创建墓碑</a>
+            <a href="./visit.html" class="btn btn-outline-primary btn-lg">一键扫墓</a>
+            <a href="./buyOfferings.html" class="btn btn-outline-primary ml-5 btn-lg">购买祭品</a>
+            <a href="./ranking.html" class="btn btn-outline-primary ml-5 btn-lg">最受尊敬先人排行榜</a>
+        </div>
+    </section>
+
+    <div class="container">
+        <section class="cv-block info">
+            <div class="work-experience group" id="work-experience">
+                <h2 class="text-center">一键扫墓</h2>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <img class="img-fluid rounded-circle" src="img/item_0.jpg">
+                    </div>
+                    <div class="col-md-6">
+                        <p>新优惠</p>
+                        <p>凭0.1 NAS即可购买一键扫墓优惠大礼包, 包括更新扫墓时间和基础祭品礼包。</p>
+                    </div>
+                </div>
+                <div class="form-group row mt-4 mb-5">
+                    <label for="inputName" class="col-sm-2 col-form-label">输入墓碑ID:</label>
+                    <div class="col-sm-2">
+                        <input type="text" maxlength="30" class="form-control " id="inputID" placeholder="ID">
+                    </div>
+                    <button type="button" onclick="getSearchResult()" class="btn btn-primary ">检查</button>
+                    <span id="isValid" class="col-sm-4"></span>
+                </div>
+                <button type="button" id="submit" onclick="pay()" disabled data-toggle="modal" data-target="#alertModal" class="btn btn-primary float-right">购买</button>
+                <div class="font-italic">*所有商品均为虚拟，并非实体商品。</div>
+            </div>
+
+        </section>
+
+        <div class="modal" tabindex="-1" role="dialog" id="alertModal">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-body">
+                        <p>请在交易完成后刷新页面。</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <footer>
+            <span class="text-muted ml-5 mb-4 font-italic font-weight-light">Copyright 2018 @ Bramleys Tech Ltd.</span>
+        </footer>
+    </div>
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="lib/jquery-3.3.1.min.js"></script>
+    <script src="lib/popper.min.js"></script>
+    <script src=lib/nebPay.js></script>
+    <script src="lib/bootstrap-4.1.1-dist/js/bootstrap.min.js"></script>
+    <script>
+        var NebPay = require("nebpay");     //https://github.com/nebulasio/nebPay
+        var nebPay = new NebPay();
+        var isIdExist = false;
+        var recordItem;
+        var dappAddress = "n1tApiXdeTxQi1rSpejHFDCukhRbatShyur";
+
+        $(document).ready(function () {
+            if (typeof (webExtensionWallet) === "undefined") {
+                alert("Extension wallet is not installed, please install it first.")
+                $("#submit").attr("disabled", true)
+            }
+        });
+    </script>
+</body>
+
+</html>

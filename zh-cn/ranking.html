@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="lib/bootstrap-4.1.1-dist/css/bootstrap.min.css">
+
+    <title>星云墓碑</title>
+    <link rel="stylesheet" href="css/base_style.css">
+    <script>
+        function findRecordDetail(resp) {
+            var result = resp.result;
+            var resultArray = JSON.parse(result);
+            for (i = 0; i < resultArray.length; i++) {
+                $("#listContainer").append(returnInsertHTML(resultArray[i].id));
+                insertValue(resultArray[i].id, resultArray[i].value);
+
+                var to = dappAddress;
+                var value = "0";
+                var callFunction = "search";
+                var callArgs = "[\"" + resultArray[i].id + "\"]";
+                nebPay.simulateCall(to, value, callFunction, callArgs, {
+                    listener: updatePage
+                });
+            }
+        }
+
+        function updatePage(resp) {
+            var result = resp.result;
+            var resultItem = JSON.parse(result);
+            insertValueDetail(resultItem.key, resultItem.toName, resultItem.latestVisitDay);
+
+        }
+
+        function returnInsertHTML(num) {
+            var html =
+                '<div class="item">' +
+                '<div class="row">' +
+                '<div class="col-md-6">' +
+                '<a id="href_' + num + '"><h3 id="toName_' + num + '">Loading...</h3></a>' +
+                '<h4 id="ID_' + num + '"class="organization">Loading...</h4>' +
+                '</div>' +
+                '<div class="col-md-6">' +
+                '<time id="period_' + num + '"class="period">Loading...</time>' +
+                '<p id="content_' + num + '">Loading...</p>' +
+                '</div>' +
+                '</div>' +
+                '</div>';
+            return html;
+        }
+        function insertValue(id, value) {
+            $("#ID_" + id).text("ID:" + id);
+            $("#content_" + id).text("祭品奉献NAS: " + value + " NAS");
+        }
+        function insertValueDetail(id, toName, latestVisitDay) {
+            var ts = new Date(latestVisitDay * 1000);
+            var newTime = ts.toLocaleString()
+            $("#toName_" + id).text(toName);
+            $("#period_" + id).text("最后一次更新扫墓时间: " + newTime);
+            $("#href_" + id).attr("href", "./search.html?id=" + id);
+        }
+
+    </script>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-light gradient">
+        <a class="navbar-brand download-template" id="word_name" href="./index.html">星云墓碑</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+            aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item">
+                    <span class="nav-link" style="color: #95CAF9">在此悼念你最爱的人</span>
+                </li>
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle text-white" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">简体中文</a>
+                    <div class="dropdown-menu">
+                        <a class="dropdown-item" href="../zh">繁體中文</a>
+                        <a class="dropdown-item" href="../zh-cn">简体中文</a>
+                    </div>
+                </li>
+                <li>
+                    <a href="http://bramleystech.com/" target="_blank">
+                        <button type="button" class="btn  btn-outline-light mr-2">关于我们</button>
+                    </a>
+                </li>
+            </ul>
+            <form class="form-inline my-2 my-lg-0" action="./search.html">
+                <input class="form-control mr-sm-2" type="search" name="id" id="inputSearch" placeholder="以ID搜寻">
+                <button class="btn btn-outline-light my-2 my-sm-0" type="submit">搜寻</button>
+            </form>
+        </div>
+    </nav>
+
+    <section class="cv-block block-intro border-bottom">
+        <div class="container">
+            <div class="avatar">
+                <img class="img-fluid rounded-circle" src="img/img_head.png">
+            </div>
+            <p> 谨以我们的哀悼之心，将您想说的话语带给您心爱的人。 </p>
+            <p>
+                <strong>亲爱的</strong>, 我有话要对你说...</p>
+            <a href="./index.html" class="btn btn-outline-primary mr-5 btn-lg">创建墓碑</a>
+            <a href="./visit.html" class="btn btn-outline-primary btn-lg">一键扫墓</a>
+            <a href="./buyOfferings.html" class="btn btn-outline-primary ml-5 btn-lg">购买祭品</a>
+            <a href="./ranking.html" class="btn btn-outline-primary ml-5 btn-lg">最受尊敬先人排行榜</a>
+        </div>
+    </section>
+
+    <div class="container">
+        <section class="cv-block info">
+            <div class="work-experience group" id="work-experience">
+                <h2 class="text-center">最受尊敬先人排行榜</h2>
+                <div class="noExtension d-none" id="noExtension">
+                    請先安裝
+                    <a target="_blank" href="https://github.com/ChengOrangeJu/WebExtensionWallet">WebExtensionWallet</a>
+                </div>
+                <div id="listContainer">
+                </div>
+            </div>
+            <footer>
+                <span class="text-muted ml-5 mb-4 font-italic font-weight-light">Copyright 2018 @ Bramleys Tech Ltd.</span>
+            </footer>
+        </section>
+    </div>
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="lib/jquery-3.3.1.min.js"></script>
+    <script src="lib/popper.min.js"></script>
+    <script src=lib/nebPay.js></script>
+    <script src="lib/bootstrap-4.1.1-dist/js/bootstrap.min.js"></script>
+    <script>
+        var NebPay = require("nebpay");
+        var nebPay = new NebPay();
+        var isIdValid = false;
+        var dappAddress = "n1tApiXdeTxQi1rSpejHFDCukhRbatShyur";
+
+        $(document).ready(function () {
+            if (typeof (webExtensionWallet) === "undefined") {
+                alert("Extension wallet is not installed, please install it first.")
+                $("#noExtension").removeClass("hide")
+            } else {
+                var to = dappAddress;
+                var value = "0";
+                var callFunction = "getHighestTotal";
+                var callArgs = "[100]";
+                nebPay.simulateCall(to, value, callFunction, callArgs, {
+                    listener: findRecordDetail
+                });
+
+            }
+        });
+    </script>
+</body>
+
+</html>
